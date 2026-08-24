@@ -1,0 +1,2 @@
+# cringestchatbotever
+most basic chatbot
