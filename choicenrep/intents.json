@@ -1,7 +1,6 @@
 {
-  "intents": [
-    {
-      "tag": "greetings",
+  "intents": {
+    "greetings": {
       "patterns": [
         [
           "chao",
@@ -25,8 +24,7 @@
         "Xin chào! Mình có thể hỗ trợ gì cho bạn về việc thuê phòng?"
       ]
     },
-    {
-      "tag": "general_info",
+    "general_info": {
       "patterns": [
         [
           "cho",
@@ -63,8 +61,7 @@
         "Phòng trọ tại Đô Nghĩa (gần Phenikaa) giá 3.5tr/tháng, đầy đủ vệ sinh khép kín, sức chứa tối đa 2 người bạn nhé."
       ]
     },
-    {
-      "tag": "services_prices",
+    "services_prices": {
       "patterns": [
         [
           "gia",
@@ -99,8 +96,7 @@
         "Điện nước tính theo giá nhà nước bạn nhé. Chi phí dịch vụ chung (vệ sinh, rác, VAT) là 355k/tháng/phòng."
       ]
     },
-    {
-      "tag": "amenities",
+    "amenities": {
       "patterns": [
         [
           "xung",
@@ -139,8 +135,7 @@
         "Ngay tầng 1 tòa nhà đã có minimart và tạp hóa, gần đó có chợ dân sinh nên việc mua sắm rất thuận tiện."
       ]
     },
-    {
-      "tag": "terms_and_deposit",
+    "terms_and_deposit": {
       "patterns": [
         [
           "coc",
@@ -166,8 +161,7 @@
         "Quy định cọc là 0.5 tháng tiền phòng. Bạn cần ở tối thiểu 30 ngày, nếu chuyển đi trước thời hạn này sẽ không được hoàn cọc."
       ]
     },
-    {
-      "tag": "goodbye",
+    "goodbye": {
       "patterns": [
         [
           "chac",
@@ -192,13 +186,12 @@
         "Vâng, cảm ơn bạn. Nếu cần thêm thông tin gì bạn cứ nhắn lại nhé!"
       ]
     },
-    {
-      "tag": "fallback",
+    "fallback": {
       "patterns": [],
       "responses": [
         "Xin lỗi, mình chưa hiểu rõ ý bạn. Bạn có thể hỏi về giá phòng, chi phí điện nước, tiền cọc hoặc tiện ích xung quanh được không?",
         "Thông tin này mình chưa hiểu rõ. Bạn vui lòng đặt câu hỏi liên quan đến phòng trọ nhé!"
       ]
     }
-  ]
+  }
 }
