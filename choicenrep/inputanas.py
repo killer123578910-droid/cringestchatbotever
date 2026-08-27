@@ -35,21 +35,20 @@ def takingtag(data,user):
     tag=max(tag_point,key=tag_point.get)
     return "fallback" if tagvalue==0 else tag
 
+def response(data,user):
+    userp=xoa_dau(user)
 
-
+    #split by regex
+    userp=re.split("\W+",userp)
+    
+    
+    intents=data['intents']
+    response=randome(intents[takingtag(data,userp)]["responses"])
+    return response
 if __name__=="__main__":
     #stripinput
     user_input=input().lower().strip()
-    user=xoa_dau(user_input)
-
-    #split by regex
-    user=re.split("\W+",user)
-    print(user)
-    
-   
-    intents=data['intents']
-    response=randome(intents[takingtag(data,user)]["responses"])
-    print(response)
+    print(response(data,user_input))
     f.close()
             
         
