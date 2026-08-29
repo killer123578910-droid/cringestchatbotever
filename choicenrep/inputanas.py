@@ -1,54 +1,86 @@
 import json
-import re
-import unicodedata
 import random
-data={}
-with open("intents.json",encoding="utf-8") as f:
-    data=json.load(f)
+from sklearn.feature_extraction.text import TfidfVectorizer
+from underthesea import text_normalize,word_tokenize
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 def randome(rep):
     return random.choice(rep)
-#nomalize texts and remove sign by unicode
-#working like a map, eX: 17 denominations of A will be translate into A, while Đ just need to turn into D, same will lowercase
-BANG_XOA_DAU = str.maketrans(
-    "ÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬĐÈÉẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴáàảãạăắằẳẵặâấầẩẫậđèéẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵ",
-    "A"*17 + "D" + "E"*11 + "I"*5 + "O"*17 + "U"*11 + "Y"*5 + "a"*17 + "d" + "e"*11 + "i"*5 + "o"*17 + "u"*11 + "y"*5
-)
 
-def xoa_dau(txt: str) -> str:
-    if not unicodedata.is_normalized("NFC", txt):
-        txt = unicodedata.normalize("NFC", txt)
-    return txt.translate(BANG_XOA_DAU)
 
-#chunk comparing: compare word by word for each tag and calculate the intersection,the tag with the highest inter will be chosen
-#when overlap,the first encounter(priortized by position in json) will be chosen
-def takingtag(data,user):   
-    tag_point={}
-    for intent in data["intents"]:
-        max_point=0
-        for k in data["intents"][intent]["patterns"]:
-            cur_point=len(set(k)&set(user))
-            if max_point<cur_point:
-                max_point=cur_point 
-        tag_point[intent]=max_point
-    tagvalue=max(tag_point.values())
-    tag=max(tag_point,key=tag_point.get)
-    return "fallback" if tagvalue==0 else tag
 
-def response(data,user):
-    userp=xoa_dau(user)
 
-    #split by regex
-    userp=re.split("\W+",userp)
-    
-    
-    intents=data['intents']
-    response=randome(intents[takingtag(data,userp)]["responses"])
-    return response
-if __name__=="__main__":
-    #stripinput
-    user_input=input().lower().strip()
-    print(response(data,user_input))
-    f.close()
-            
+#init data: take list of responses-take list of tags
+def init_data(data):
+    tags=[]
+    patterns=[]
+    intents=data["intents"]
+    for tag,patt in intents.items():
+        tags.append(tag)
+        patterns.append(patt["patterns"])
         
+    return tags,patterns
+
+def custom_tokenized(text):
+    return word_tokenize(text)
+
+
+#tfidf fit_transform: vectorizing the response list(feature matrix) 
+def formvectorized(tf,patt):
+    #fit all text to make a general vocab for intents detect, req a [" "," ",...]
+    alldoc=[doc for intent in patt for doc in intent]
+    tf.fit(alldoc)
+    res=[]
+    for iten in patt:
+        if len(iten)>0:
+            matrix=tf.transform(iten)
+            res.append(matrix)
+        
+    return res
+
+def uservectorized(tf,inte):
+    maxtrix=tf.transform(inte)
+    return maxtrix
+#predict respose: 
+#-load user reply- underthesea-vectorized-calculate cosine similarity with each feature vector and take the highest
+#check if max >=0.3? take tag,response base on json:tag==fallback,response. 
+def response(tf,patt,user_int,tags,data):
+    user_int=[text_normalize(user_int)]
+    vectorized=uservectorized(tf,user_int)
+    
+    
+    
+    max_score=0
+    maxidx=0
+    for idx,value in enumerate(patt):
+        cur_score=max(cosine_similarity(vectorized,value).flatten())
+        if cur_score>max_score:
+            max_score=cur_score
+            maxidx=idx
+    tag=""       
+    if max_score>=0.3:
+        tag=tags[maxidx]
+    else:
+        tag=tags[6]
+    rep=randome(data["intents"][tag]["responses"])
+    #print(f"{tag} \n {rep}")
+    
+    return rep
+    
+    
+    
+    
+
+
+if __name__=="__main__":
+    #for testing
+    dataf={}
+    with open("intents.json",encoding="utf-8") as f:
+        dataf=json.load(f)
+    
+    tags,patt=init_data()
+    tf=TfidfVectorizer(tokenizer=custom_tokenized,lowercase=True)
+    fitted=formvectorized(tf,patt)
+    usr="tôi muốn làm ca sĩ"
+    response(tf,fitted,usr.strip(),tags)
