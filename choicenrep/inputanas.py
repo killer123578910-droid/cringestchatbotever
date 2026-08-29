@@ -79,8 +79,8 @@ if __name__=="__main__":
     with open("intents.json",encoding="utf-8") as f:
         dataf=json.load(f)
     
-    tags,patt=init_data()
+    tags,patt=init_data(dataf)
     tf=TfidfVectorizer(tokenizer=custom_tokenized,lowercase=True)
     fitted=formvectorized(tf,patt)
     usr="tôi muốn làm ca sĩ"
-    response(tf,fitted,usr.strip(),tags)
+    response(tf,fitted,usr.strip(),tags,dataf)
