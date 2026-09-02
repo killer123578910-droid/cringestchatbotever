@@ -1,14 +1,14 @@
 from flask import Flask,request,jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from urllib.parse import quote_plus
 from choicenrep.inputanas import response,init_data,formvectorized
 import pathlib
+from urllib.parse import quote_plus
 from underthesea import word_tokenize
 import json
 from sklearn.feature_extraction.text import TfidfVectorizer
-
-
+from dotenv import load_dotenv
+import os
 #the json loader
 data={}
 basedir=pathlib.Path(__file__).parent.resolve()
@@ -23,11 +23,11 @@ tags,patt=init_data(data)
 tf=TfidfVectorizer(tokenizer=custom_tokenized,lowercase=True)
 fitted=formvectorized(tf,patt)
 
-
+load_dotenv()
 #Flask
 app=Flask(__name__)
-pw=quote_plus("Z918273645z@kk")
-app.config['SQLALCHEMY_DATABASE_URI']=f'postgresql://khyz:{pw}@localhost:5432/chatbot_id'
+pw=os.getenv("sql_pw")
+app.config['SQLALCHEMY_DATABASE_URI']=f'postgresql://khyz:{quote_plus(pw)}@localhost:5432/chatbot_id'
 db=SQLAlchemy(app)
 
 class chathis(db.Model):
