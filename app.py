@@ -1,9 +1,13 @@
 from flask import Flask,request,jsonify
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from urllib.parse import quote_plus
 from choicenrep.inputanas import response,init_data,formvectorized
 import pathlib
 from underthesea import word_tokenize
 import json
 from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 #the json loader
 data={}
@@ -22,7 +26,46 @@ fitted=formvectorized(tf,patt)
 
 #Flask
 app=Flask(__name__)
+pw=quote_plus("Z918273645z@kk")
+app.config['SQLALCHEMY_DATABASE_URI']=f'postgresql://khyz:{pw}@localhost:5432/chatbot_id'
+db=SQLAlchemy(app)
 
+class chathis(db.Model):
+    __tablename__='chat_his'
+    id = db.Column(
+        db.BigInteger,
+        primary_key=True,
+        autoincrement=True,
+        server_default=db.text("nextval('chat_his_id_seq'::regclass)")
+    )
+    
+    user_ms = db.Column(
+        db.Text,
+        nullable=False,
+        doc="User message"
+    )
+    
+    bot_rep = db.Column(
+        db.Text,
+        nullable=False,
+        doc="Bot reply/response"
+    )
+    
+    create_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=datetime.now,
+        server_default=db.text("now()"),
+        doc="Timestamp of message creation"
+    )
+    
+    def __init__(self,user_ms,bot_rep):
+        self.user_ms=user_ms
+        self.bot_rep=bot_rep
+    def to_dict(self):
+        return {'id':self.id,'user_ms':self.user_ms,'bot_rep':self.bot_rep,'create_at':self.create_at.isoformat() if self.create_at else None}
+    
+    
 @app.route("/api/chat",methods=["POST"])    
 def chat():
     usr=request.get_json()
@@ -32,6 +75,12 @@ def chat():
             }),400
     else:
         rep=response(tf,fitted,usr["message"],tags,data)
+        chat=chathis(usr["message"],rep)
+        
+        db.session.add(chat)
+        db.session.commit()
+        
+        
         return jsonify({
             "message":rep}),200
 if __name__=="__main__":
