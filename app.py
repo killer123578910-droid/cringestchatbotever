@@ -28,8 +28,7 @@ app=Flask(__name__)
 pw=os.getenv("DB_URL")
 app.config['SQLALCHEMY_DATABASE_URI']=pw
 db=SQLAlchemy(app)
-if app.app_context():
-    db.create_all()
+
 class chathis(db.Model):
     __tablename__='chat_his'
     id = db.Column(
@@ -65,6 +64,9 @@ class chathis(db.Model):
     def to_dict(self):
         return {'id':self.id,'user_ms':self.user_ms,'bot_rep':self.bot_rep,'create_at':self.create_at.isoformat() if self.create_at else None}
     
+
+with app.app_context():
+    db.create_all()
     
 @app.route("/api/chat",methods=["POST"])    
 def chat():
