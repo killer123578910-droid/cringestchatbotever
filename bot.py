@@ -14,7 +14,7 @@ def readmess(message):
     chat_id=message.chat.id
     usrn=message.from_user.username
     try:
-        response=requests.post("http://127.0.0.1:5000/api/chat",json={"message":user_text})
+        response=requests.post("https://cringestchatbotever.onrender.com/api/chat",json={"message":user_text})
         text=response.json()["message"]
         bot.send_message(text=text,chat_id=chat_id)
     except Exception as e:
