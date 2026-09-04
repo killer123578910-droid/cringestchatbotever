@@ -14,6 +14,7 @@ def readmess(message):
     chat_id=message.chat.id
     usrn=message.from_user.username
     try:
+        #for localhost:(replace https://cringest.....com to http://127.0.0.1:5000)
         response=requests.post("https://cringestchatbotever.onrender.com/api/chat",json={"message":user_text})
         text=response.json()["message"]
         bot.send_message(text=text,chat_id=chat_id)
