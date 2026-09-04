@@ -28,7 +28,8 @@ app=Flask(__name__)
 pw=os.getenv("DB_URL")
 app.config['SQLALCHEMY_DATABASE_URI']=pw
 db=SQLAlchemy(app)
-
+if app.app_context():
+    db.create_all()
 class chathis(db.Model):
     __tablename__='chat_his'
     id = db.Column(
