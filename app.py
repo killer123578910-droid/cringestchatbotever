@@ -6,13 +6,14 @@ import pathlib
 import json
 from dotenv import load_dotenv
 import os
-
+import telebot
+#telebot
+API_KEY=os.getenv("API")
+bot=telebot.TeleBot(API_KEY)
 #the json loader
 data={}
 basedir=pathlib.Path(__file__).parent.resolve()
 intenpath=basedir/"choicenrep"/"intents.json"
-
-
 with open(intenpath,"r",encoding="utf-8") as f:
     data=json.load(f)
 
@@ -24,6 +25,8 @@ fitted=formvectorized(tf,patt)
 load_dotenv()
 #Flask
 app=Flask(__name__)
+
+#psql
 pw=os.getenv("DB_URL")
 app.config['SQLALCHEMY_DATABASE_URI']=pw
 db=SQLAlchemy(app)
@@ -67,6 +70,8 @@ class chathis(db.Model):
 with app.app_context():
     db.create_all()
     
+    
+#api route    
 @app.route("/api/chat",methods=["POST"])    
 def chat():
     usr=request.get_json()
@@ -84,6 +89,28 @@ def chat():
         
         return jsonify({
             "message":rep}),200
+        
+@app.route(f"/tele",methods=["POST"])
+def getmessages():
+    
+    usr=request.get_json()
+    if usr and 'message' in usr and 'text' in usr["message"]:
+        chat_id= usr['message']['chat']['id']
+        text=usr['message']['text']
+    
+        reply_text=response(tf,fitted,text,tags,data)
+        chat=chathis(text,reply_text)
+                
+        db.session.add(chat)
+        db.session.commit()
+        bot.send_message(chat_id=chat_id,text=reply_text)
+        return jsonify({"message":reply_text}),200
+    else:
+        return jsonify({
+                    "message":"failed to fetch client input"
+                    }),400
+        
+    
 if __name__=="__main__":
-    app.run()
+    app.run(port=5000,debug=True)
     
