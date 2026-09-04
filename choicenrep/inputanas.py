@@ -25,7 +25,8 @@ def init_data(data):
 def custom_tokenized(text):
     return word_tokenize(text)
 
-
+def init_tf():
+    return TfidfVectorizer(tokenizer=custom_tokenized,lowercase=True)
 #tfidf fit_transform: vectorizing the response list(feature matrix) 
 def formvectorized(tf,patt):
     #fit all text to make a general vocab for intents detect, req a [" "," ",...]
@@ -69,7 +70,7 @@ def response(tf,patt,user_int,tags,data):
     return rep
     
     
-    
+
     
 
 
@@ -80,7 +81,7 @@ if __name__=="__main__":
         dataf=json.load(f)
     
     tags,patt=init_data(dataf)
-    tf=TfidfVectorizer(tokenizer=custom_tokenized,lowercase=True)
+    tf=init_tf()
     fitted=formvectorized(tf,patt)
     usr="tôi muốn làm ca sĩ"
     response(tf,fitted,usr.strip(),tags,dataf)

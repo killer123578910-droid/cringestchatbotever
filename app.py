@@ -1,26 +1,24 @@
 from flask import Flask,request,jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from choicenrep.inputanas import response,init_data,formvectorized
+from choicenrep.inputanas import response,init_data,formvectorized,init_tf
 import pathlib
 from urllib.parse import quote_plus
-from underthesea import word_tokenize
 import json
-from sklearn.feature_extraction.text import TfidfVectorizer
 from dotenv import load_dotenv
 import os
 #the json loader
 data={}
 basedir=pathlib.Path(__file__).parent.resolve()
 intenpath=basedir/"choicenrep"/"intents.json"
+
+
 with open(intenpath,"r",encoding="utf-8") as f:
     data=json.load(f)
 
-def custom_tokenized(text):
-    return word_tokenize(text)
 #preparing for TF-IDF
 tags,patt=init_data(data)
-tf=TfidfVectorizer(tokenizer=custom_tokenized,lowercase=True)
+tf=init_tf()
 fitted=formvectorized(tf,patt)
 
 load_dotenv()
