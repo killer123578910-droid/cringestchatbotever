@@ -7,6 +7,7 @@ from urllib.parse import quote_plus
 import json
 from dotenv import load_dotenv
 import os
+
 #the json loader
 data={}
 basedir=pathlib.Path(__file__).parent.resolve()
@@ -24,8 +25,8 @@ fitted=formvectorized(tf,patt)
 load_dotenv()
 #Flask
 app=Flask(__name__)
-pw=os.getenv("sql_pw")
-app.config['SQLALCHEMY_DATABASE_URI']=f'postgresql://khyz:{quote_plus(pw)}@localhost:5432/chatbot_id'
+pw=os.getenv("DB_URL")
+app.config['SQLALCHEMY_DATABASE_URI']=pw
 db=SQLAlchemy(app)
 
 class chathis(db.Model):
@@ -69,7 +70,7 @@ def chat():
     usr=request.get_json()
     if  not usr or "message" not in usr:
         return jsonify({
-            "message":"failed to fetch cilent input"
+            "message":"failed to fetch client input"
             }),400
     else:
         rep=response(tf,fitted,usr["message"],tags,data)
@@ -83,3 +84,4 @@ def chat():
             "message":rep}),200
 if __name__=="__main__":
     app.run()
+    
