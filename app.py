@@ -109,7 +109,7 @@ def getmessages():
     usr=request.get_json()
     if usr and 'message' in usr and 'text' in usr["message"]:
         chat_id= usr['message']['chat']['id']
-        chat_name=usr['message']['chat']['username']
+        chat_name=usr['message']['chat']['first_name']+usr['message']['chat']['last_name']
         text=usr['message']['text']
     
         reply_text=response(tf,fitted,text,tags,data)
