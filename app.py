@@ -51,7 +51,18 @@ class chathis(db.Model):
         nullable=False,
         doc="Bot reply/response"
     )
+    chat_id=db.Column(
+        db.Integer,
+        nullable=False,
+        doc="chatid"
+    )
+    chat_name=db.Column(
+            db.Text,
+            nullable=False,
+            doc="name_usr"
+        )
     
+
     create_at = db.Column(
         db.DateTime,
         nullable=False,
@@ -59,10 +70,12 @@ class chathis(db.Model):
         server_default=db.text("now()"),
         doc="Timestamp of message creation"
     )
-    
-    def __init__(self,user_ms,bot_rep):
+
+    def __init__(self,user_ms,bot_rep,chat_id,chat_name):
         self.user_ms=user_ms
         self.bot_rep=bot_rep
+        self.chat_id=chat_id
+        self.chat_name=chat_name
     def to_dict(self):
         return {'id':self.id,'user_ms':self.user_ms,'bot_rep':self.bot_rep,'create_at':self.create_at.isoformat() if self.create_at else None}
     
@@ -96,10 +109,11 @@ def getmessages():
     usr=request.get_json()
     if usr and 'message' in usr and 'text' in usr["message"]:
         chat_id= usr['message']['chat']['id']
+        chat_name=usr['message']['chat']['username']
         text=usr['message']['text']
     
         reply_text=response(tf,fitted,text,tags,data)
-        chat=chathis(text,reply_text)
+        chat=chathis(text,reply_text,chat_id,chat_name)
                 
         db.session.add(chat)
         db.session.commit()
