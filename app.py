@@ -52,7 +52,7 @@ class chathis(db.Model):
         doc="Bot reply/response"
     )
     chat_id=db.Column(
-        db.Integer,
+        db.BigInteger,
         nullable=False,
         doc="chatid"
     )
