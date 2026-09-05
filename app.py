@@ -77,7 +77,7 @@ class chathis(db.Model):
         self.chat_id=chat_id
         self.chat_name=chat_name
     def to_dict(self):
-        return {'id':self.id,'user_ms':self.user_ms,'bot_rep':self.bot_rep,'create_at':self.create_at.isoformat() if self.create_at else None}
+        return {'id':self.id,'user_ms':self.user_ms,'bot_rep':self.bot_rep,'chat_id':self.chat_id,'chat_name':self.chat_name,'create_at':self.create_at.isoformat() if self.create_at else None}
     
 
 with app.app_context():
