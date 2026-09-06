@@ -66,7 +66,7 @@ class chathis(db.Model):
     create_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.now,
+        default=datetime.now(),
         server_default=db.text("now()"),
         doc="Timestamp of message creation"
     )
