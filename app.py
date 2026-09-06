@@ -7,6 +7,7 @@ import json
 from dotenv import load_dotenv
 import os
 import telebot
+from zoneinfo import ZoneInfo
 #telebot
 API_KEY=os.getenv("API")
 bot=telebot.TeleBot(API_KEY)
@@ -66,7 +67,7 @@ class chathis(db.Model):
     create_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.now(),
+        default=datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")),
         server_default=db.text("now()"),
         doc="Timestamp of message creation"
     )
