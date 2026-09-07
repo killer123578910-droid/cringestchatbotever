@@ -84,7 +84,7 @@ class chathis(db.Model):
 with app.app_context():
     db.create_all()
     
-    
+
 #api route    
 @app.route("/api/chat",methods=["POST"])    
 def chat():

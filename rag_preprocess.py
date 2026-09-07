@@ -1,21 +1,17 @@
 from langchain_openai import OpenAIEmbeddings 
-from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter 
 from langchain_core.documents import Document
 from dotenv import load_dotenv
-import psycopg2
+from app import db,app
+from sqlalchemy import text
 import os,json,pathlib
 
 load_dotenv()
 openrouter_api=os.getenv("op_api")
-connectid=os.getenv("DB_URL")
-db=psycopg2.connect(connectid)
-cur=db.cursor()
 
 
-def closedb(db,cur):
-    cur.close()
-    db.close()
+
+
 #đọc file,đưa thành text -> update(user input name of files,loop over the list of name to open each file and store in a list of docs)
 
 
@@ -38,28 +34,27 @@ embedmodel=OpenAIEmbeddings(
     openai_api_key=openrouter_api,  # Your OpenRouter API Key
     openai_api_base="https://openrouter.ai/api/v1", # OpenRouter base endpoint
     check_embedding_ctx_length=False ,
-    encoding_format='float'
+    encoding_format='float',
 )
 
 def embed_docs(docs):
     
     doclist=[doc.page_content for doc in docs]
     data=embedmodel.embed_documents(doclist)
+    sql_command=text("""insert into chatbot_vector (content,embedding) values(:content,:embedding) """)
     for i in range(len(data)):
-        cur.execute("""insert into chatbot_vector (content,embedding) values(%s,%s) """,(doclist[i],data[i]))
+        db.session.execute(sql_command,{'content':doclist[i],'embedding':str(data[i])})
 
-    db.commit()
+    db.session.commit()
 
 #queries and response( embeds_query)-> select .. from table order by embedding <=>(cosine similarity)::%s limit k; 
 def response(userquery,k):
     embedqur=embedmodel.embed_query(userquery)
 
-    cur.execute("""select content,1-(embedding<=> %s::vector) as cosine_diff 
-                    from chatbot_vector 
-                    order by embedding <=> %s::vector 
-                    limit %s""",
-                    (embedqur,embedqur,k))
-    print(cur.fetchall())
+    sql_command=text("""select content,1-(embedding<=> cast(:vu as vector)) as cosine_diff from chatbot_vector order by embedding <=> cast(:vu as vector) limit :limit_k""")
+    with app.app_context(): 
+        req=db.session.execute(sql_command,{"vu":str(embedqur),"limit_k":k})
+        print(req.fetchall())
 
 
 if __name__=="__main__":
