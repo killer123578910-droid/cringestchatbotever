@@ -48,6 +48,7 @@ def embed_docs(docs):
     db.session.commit()
 
 #queries and response( embeds_query)-> select .. from table order by embedding <=>(cosine similarity)::%s limit k; 
+#next task: import llm, config rag to llm and get response in text
 def response(userquery,k):
     embedqur=embedmodel.embed_query(userquery)
 
@@ -55,6 +56,7 @@ def response(userquery,k):
     with app.app_context(): 
         req=db.session.execute(sql_command,{"vu":str(embedqur),"limit_k":k})
         print(req.fetchall())
+    return req.fetchall()
 
 
 if __name__=="__main__":
