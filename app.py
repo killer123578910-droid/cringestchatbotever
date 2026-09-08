@@ -90,16 +90,16 @@ def getmessages():
     usr=request.get_json()
     if usr and 'message' in usr and 'text' in usr["message"]:
         chat_id= usr['message']['chat']['id']
-        chat_name=usr['message']['chat']['first_name']+usr['message']['chat']['last_name']
+        chat_name=usr['message']['chat'].get('first_name', '') + " " + usr['message']['chat'].get('last_name', '')
         text=usr['message']['text']
 
-        processed=form_prompt(userq=usr["message"],k=7)
-        reply_text=take_rep(processed)
+        processed,listofrag=form_prompt(userq=text,k=7)
+        reply_text=take_rep(processed) 
         chat=chathis(text,reply_text,chat_id,chat_name)
                 
         db.session.add(chat)
         db.session.commit()
-        bot.send_message(chat_id=chat_id,text=reply_text)
+        #bot.send_message(chat_id=chat_id,text=reply_text)
         return jsonify({"message":reply_text}),200
     else:
         return jsonify({
