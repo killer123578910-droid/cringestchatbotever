@@ -2,8 +2,8 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter 
 from langchain_core.documents import Document
 from dotenv import load_dotenv
-from app import db,app
 from sqlalchemy import text
+from extensions import db
 import os,json,pathlib
 
 load_dotenv()
@@ -13,8 +13,6 @@ openrouter_api=os.getenv("op_api")
 
 
 #đọc file,đưa thành text -> update(user input name of files,loop over the list of name to open each file and store in a list of docs)
-
-
 def init_data():
     docs=[]
     with open("context.txt",'r',encoding='UTF8') as f:
@@ -49,26 +47,30 @@ def embed_docs(docs):
 
 #queries and response( embeds_query)-> select .. from table order by embedding <=>(cosine similarity)::%s limit k; 
 #next task: import llm, config rag to llm and get response in text
-def response(userquery,k):
-    embedqur=embedmodel.embed_query(userquery)
+#def responsefortesting(app,userquery,k):
+ #   embedqur=embedmodel.embed_query(userquery)
+  #  with app.app_context():
+   #     sql_command=text("""select content,1-(embedding<=> cast(:vu as vector)) as cosine_diff from chatbot_vector order by embedding <=> cast(:vu as vector) limit :limit_k""")
+    #    req=db.session.execute(sql_command,{"vu":str(embedqur),"limit_k":k})
+     #   #print(req.fetchall())
+    #return req.fetchall()
 
+def response(userq,k):
+    embedqur=embedmodel.embed_query(userq)
     sql_command=text("""select content,1-(embedding<=> cast(:vu as vector)) as cosine_diff from chatbot_vector order by embedding <=> cast(:vu as vector) limit :limit_k""")
-    with app.app_context(): 
-        req=db.session.execute(sql_command,{"vu":str(embedqur),"limit_k":k})
-        print(req.fetchall())
+    req=db.session.execute(sql_command,{"vu":str(embedqur),"limit_k":k})
+    #print(req.fetchall())
     return req.fetchall()
-
-
 if __name__=="__main__":
     #operator for push embedded vector into dbvector   
     #data=init_data()
     #processed=chunking(data)
     #embed_docs(processed)
-
-
+    #from app import app
 
     #query parts
     userq='rag is a powerful tool'
-    response(userquery=userq,k=5)
+    #print(responsefortesting(app,userq,5))
+
 
     #dbclose()

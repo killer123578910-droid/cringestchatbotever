@@ -1,8 +1,8 @@
 from flask import Flask,request,jsonify
-from flask_sqlalchemy import SQLAlchemy
+from extensions import db
 from datetime import datetime
-from choicenrep.inputanas import response,init_data,formvectorized,init_tf
 import pathlib
+from rag_engine.get_rep import take_rep,form_prompt
 import json
 from dotenv import load_dotenv
 import os
@@ -19,9 +19,7 @@ with open(intenpath,"r",encoding="utf-8") as f:
     data=json.load(f)
 
 #preparing for TF-IDF
-tags,patt=init_data(data)
-tf=init_tf()
-fitted=formvectorized(tf,patt)
+
 
 load_dotenv()
 #Flask
@@ -30,7 +28,7 @@ app=Flask(__name__)
 #psql
 pw=os.getenv("DB_URL")
 app.config['SQLALCHEMY_DATABASE_URI']=pw
-db=SQLAlchemy(app)
+db.init_app(app)
 
 class chathis(db.Model):
     __tablename__='chat_his'
@@ -85,25 +83,7 @@ with app.app_context():
     db.create_all()
     
 
-#api route    
-@app.route("/api/chat",methods=["POST"])    
-def chat():
-    usr=request.get_json()
-    if  not usr or "message" not in usr:
-        return jsonify({
-            "message":"failed to fetch client input"
-            }),400
-    else:
-        rep=response(tf,fitted,usr["message"],tags,data)
-        chat=chathis(usr["message"],rep)
-        
-        db.session.add(chat)
-        db.session.commit()
-        
-        
-        return jsonify({
-            "message":rep}),200
-        
+#api route            
 @app.route(f"/tele",methods=["POST"])
 def getmessages():
     
@@ -112,8 +92,9 @@ def getmessages():
         chat_id= usr['message']['chat']['id']
         chat_name=usr['message']['chat']['first_name']+usr['message']['chat']['last_name']
         text=usr['message']['text']
-    
-        reply_text=response(tf,fitted,text,tags,data)
+
+        processed=form_prompt(userq=usr["message"],k=7)
+        reply_text=take_rep(processed)
         chat=chathis(text,reply_text,chat_id,chat_name)
                 
         db.session.add(chat)
