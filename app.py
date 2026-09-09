@@ -103,7 +103,7 @@ def getmessages():
                 
                 file_path=requests.get(f"https://api.telegram.org/bot{API_KEY}/getFile?file_id={file_id}")
                 file_content=requests.get(f"https://api.telegram.org/file/bot{API_KEY}/{file_path.json()['result']['file_path']}")
-                add_text_features(file_content.text,chat_name)
+                add_text_features(file_content.text,chat_id)
                 return jsonify({
                     'method':'sendMessage',
                     'chat_id':chat_id,
@@ -124,7 +124,7 @@ def getmessages():
                 text=usr['message']['text'].replace('/input','')
                 
 
-                add_text_features(text,chat_name)
+                add_text_features(text,chat_id)
                 return jsonify({
                     'method':'sendMessage',
                     'chat_id':chat_id,
@@ -141,7 +141,7 @@ def getmessages():
             else:
                 text=usr['message']['text']
 
-                processed,listofrag=form_prompt(userq=text,k=7)
+                processed,listofrag=form_prompt(userq=text,k=7,user_id=chat_id)
                 reply_text=take_rep(processed) 
                 chat=chathis(text,reply_text,chat_id,chat_name)
                         

@@ -4,7 +4,8 @@ from langchain_core.documents import Document
 from dotenv import load_dotenv
 from sqlalchemy import text
 from extensions import db
-import os,json,pathlib
+import os,pathlib
+from datetime import datetime
 
 load_dotenv()
 openrouter_api=os.getenv("op_api")
@@ -15,13 +16,13 @@ basedir=curdir.parent
 contextdir=basedir/"context"
 
 def delete_vtdb():
-    db.session.execute("truncate table chatbot_vector restart identity")
-def add_text_features(text,user_name):
+    db.session.execute(text('truncate table chatbot_vector restart identity'))
+def add_text_features(text,chat_id):
     docs=[Document(
                     page_content=text,
-                    metadata={'source':'user_file','author':user_name})]
+                    metadata={'source':'user_file','author':chat_id})]
     chunked=chunking(docs)
-    embed_docs(chunked)
+    embed_docs(chunked,chat_id)
 
 #đọc file,đưa thành text -> update(user input name of files,loop over the list of name to open each file and store in a list of docs)
 def init_data(contextdir,user_name):
@@ -55,13 +56,13 @@ embedmodel=OpenAIEmbeddings(
     encoding_format='float',
 )
 
-def embed_docs(docs):
+def embed_docs(docs,chat_id):
     
     doclist=[doc.page_content for doc in docs]
     data=embedmodel.embed_documents(doclist)
-    sql_command=text("""insert into chatbot_vector (content,embedding) values(:content,:embedding) """)
+    sql_command=text("""insert into chatbot_vector (content,embedding,user_id,created_at) values(:content,:embedding,:user_id,:time) """)
     for i in range(len(data)):
-        db.session.execute(sql_command,{'content':doclist[i],'embedding':str(data[i])})
+        db.session.execute(sql_command,{'content':doclist[i],'embedding':str(data[i]),'user_id':chat_id,'time':datetime.now().isoformat()})
 
     db.session.commit()
 
@@ -75,10 +76,10 @@ def embed_docs(docs):
      #   #print(req.fetchall())
     #return req.fetchall()
 
-def response(userq,k):
+def response(userq,k,user_id):
     embedqur=embedmodel.embed_query(userq)
-    sql_command=text("""select content,1-(embedding<=> cast(:vu as vector)) as cosine_diff from chatbot_vector order by embedding <=> cast(:vu as vector) limit :limit_k""")
-    req=db.session.execute(sql_command,{"vu":str(embedqur),"limit_k":k})
+    sql_command=text("""select content,1-(embedding<=> cast(:vu as vector)) as cosine_diff from chatbot_vector where user_id = :user_id order by embedding <=> cast(:vu as vector) limit :limit_k""")
+    req=db.session.execute(sql_command,{"vu":str(embedqur),'user_id':user_id,"limit_k":k})
     #print(req.fetchall())
     return req.fetchall()
 if __name__=="__main__":
