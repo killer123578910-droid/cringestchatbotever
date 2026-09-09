@@ -9,14 +9,34 @@ import os,json,pathlib
 load_dotenv()
 openrouter_api=os.getenv("op_api")
 
+#folder traverse
+curdir=pathlib.Path(__file__).parent.resolve()
+basedir=curdir.parent
+contextdir=basedir/"context"
 
-
+def delete_vtdb():
+    db.session.execute("truncate table chatbot_vector restart identity")
+def add_text_features(text,user_name):
+    docs=[Document(
+                    page_content=text,
+                    metadata={'source':'user_file','author':user_name})]
+    chunked=chunking(docs)
+    embed_docs(chunked)
 
 #đọc file,đưa thành text -> update(user input name of files,loop over the list of name to open each file and store in a list of docs)
-def init_data():
+def init_data(contextdir,user_name):
+    cupath=pathlib.Path(contextdir)
     docs=[]
-    with open("context.txt",'r',encoding='UTF8') as f:
-        docs.append(Document(page_content=f.read(),metadata={'source':"userfile",'author':'kh'}))
+    for i in cupath.glob("*.txt"):
+        try:
+            docs.append(
+                Document(
+                    page_content=i.read_text(encoding='utf8'),
+                    metadata={'source':'user_file','author':user_name,'file_name':i.name}
+                )
+            )
+        except Exception as e:
+            print(f"error: cant not read upload file,detail:{e}")
     return docs
 
 #chunking sử dụng textspliter

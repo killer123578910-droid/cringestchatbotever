@@ -1,8 +1,10 @@
 from flask import Flask,request,jsonify
+import requests
 from extensions import db
 from datetime import datetime
 import pathlib
 from rag_engine.get_rep import take_rep,form_prompt
+from rag_engine.rag_preprocess import delete_vtdb,add_text_features
 import json
 from dotenv import load_dotenv
 import os
@@ -86,26 +88,74 @@ with app.app_context():
 #api route            
 @app.route(f"/tele",methods=["POST"])
 def getmessages():
-    
+
     usr=request.get_json()
-    if usr and 'message' in usr and 'text' in usr["message"]:
+    
+    if usr and 'message' in usr:
         chat_id= usr['message']['chat']['id']
         chat_name=usr['message']['chat'].get('first_name', '') + " " + usr['message']['chat'].get('last_name', '')
-        text=usr['message']['text']
 
-        processed,listofrag=form_prompt(userq=text,k=7)
-        reply_text=take_rep(processed) 
-        chat=chathis(text,reply_text,chat_id,chat_name)
+        if('caption' in usr['message']):
+            
+            if 'document' in usr['message'] and usr['message']['document']['mime_type']=='text/plain' and usr['message']['caption']=='/input':
+                file_id=usr['message']['document']['file_id']
                 
-        db.session.add(chat)
-        db.session.commit()
-        #bot.send_message(chat_id=chat_id,text=reply_text)
-        return jsonify({"message":reply_text}),200
+                
+                file_path=requests.get(f"https://api.telegram.org/bot{API_KEY}/getFile?file_id={file_id}")
+                file_content=requests.get(f"https://api.telegram.org/file/bot{API_KEY}/{file_path.json()['result']['file_path']}")
+                add_text_features(file_content.text,chat_name)
+                return jsonify({
+                    'method':'sendMessage',
+                    'chat_id':chat_id,
+                    'text':'data digested' 
+                }),200
+            else:
+                return jsonify({
+                                    'method':'sendMessage',
+                                    'chat_id':chat_id,
+                                    'text':'wrong input syntax or no file included, please do /input and include your file' 
+                                }),404
+                
+                
+            
+        elif 'text' in usr["message"]:         
+
+            if usr['message']['text'].startswith('/input'):
+                text=usr['message']['text'].replace('/input','')
+                
+
+                add_text_features(text,chat_name)
+                return jsonify({
+                    'method':'sendMessage',
+                    'chat_id':chat_id,
+                    'text':'data digested'
+                }),200
+            elif usr['message']['text'].startswith('/delete'):
+                delete_vtdb()
+                return jsonify({
+                                    'method':'sendMessage',
+                                    'chat_id':chat_id,
+                                    'text':'context cleared'
+                                }),200
+            
+            else:
+                text=usr['message']['text']
+
+                processed,listofrag=form_prompt(userq=text,k=7)
+                reply_text=take_rep(processed) 
+                chat=chathis(text,reply_text,chat_id,chat_name)
+                        
+                db.session.add(chat)
+                db.session.commit()
+                return jsonify({
+                    "method":"sendMessage",
+                    "chat_id":chat_id,
+                    "text":reply_text}),200
     else:
         return jsonify({
                     "message":"failed to fetch client input"
                     }),400
-        
+
     
 if __name__=="__main__":
     app.run(port=5000,debug=True)
