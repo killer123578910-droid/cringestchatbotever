@@ -23,6 +23,7 @@ with open(intenpath,"r",encoding="utf-8") as f:
 
 #preparing for TF-IDF
 
+
 load_dotenv()
 #Flask
 app=Flask(__name__)
@@ -33,8 +34,13 @@ app.config['SQLALCHEMY_DATABASE_URI']=pw
 db.init_app(app)
 
 class chathis(db.Model):
-    primary_key=True,
-    server_default=db.text("nextval('chat_his_id_seq'::regclass)")
+    __tablename__='chat_his'
+    id = db.Column(
+        db.BigInteger,
+        primary_key=True,
+        autoincrement=True,
+        server_default=db.text("nextval('chat_his_id_seq'::regclass)")
+    )
     
     user_ms = db.Column(
         db.Text,
@@ -66,7 +72,6 @@ class chathis(db.Model):
         server_default=db.text("now()"),
         doc="Timestamp of message creation"
     )
-
 
     def __init__(self,user_ms,bot_rep,chat_id,chat_name):
         self.user_ms=user_ms
