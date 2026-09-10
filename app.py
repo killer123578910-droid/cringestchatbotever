@@ -122,10 +122,10 @@ def getmessages():
         elif 'text' in usr["message"]:         
 
             if usr['message']['text'].startswith('/input'):
-                text=usr['message']['text'].replace('/input','')
+                txt=usr['message']['text'].replace('/input','')
                 
 
-                add_text_features(text,chat_id)
+                add_text_features(txt,chat_id)
                 return jsonify({
                     'method':'sendMessage',
                     'chat_id':chat_id,
@@ -140,16 +140,18 @@ def getmessages():
                                 }),200
             
             else:
-                text=usr['message']['text']
+                txt=usr['message']['text']
 
-                processed,listofrag=form_prompt(userq=text,k=7,user_id=chat_id)
+                processed,listofrag=form_prompt(userq=txt,k=7,user_id=chat_id)
                 reply_text=take_rep(processed) 
 
+        
+                
 
+                update_sql_cm=f"""update chatbot_vector set created_at = :current_timestamp where id in ({','.join(str(r) for r in listofrag)});"""
+                db.session.execute(text(update_sql_cm),{'current_timestamp':datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat()})        
 
-                db.session.execute(text('update chatbot_vector set created_at=current_timestamp where id in :selecid'),{'selecid':listofrag})        
-
-                chat=chathis(text,reply_text,chat_id,chat_name)
+                chat=chathis(txt,reply_text,chat_id,chat_name)
                 db.session.add(chat)
                 db.session.commit()
                 return jsonify({

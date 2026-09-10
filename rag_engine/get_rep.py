@@ -19,7 +19,7 @@ llm = ChatOpenAI(
 def form_prompt(userq,k,user_id):
     listofrelevent=list(response(userq,k,user_id))
     context_text=' '.join(row[0] for row in listofrelevent)
-    listofchosenid=[row[3] for row in listofrelevent]
+    listofchosenid=[row[2] for row in listofrelevent]
 
     sysprompt=f'You are a knowledgeable virtual assistant. Based on the following information: {context_text}, answer the users question. If the information is not available in the context, say that you do not know. Do not make up or fabricate any information.'
     messages=[

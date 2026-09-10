@@ -17,9 +17,18 @@ contextdir=basedir/"context"
 
 def delete_vtdb():
     db.session.execute(text('truncate table chatbot_vector restart identity'))
-def add_text_features(text,chat_id):
+    db.session.commit()
+def add_text_features(texte,chat_id):
+    select_cm=text('select count(*) from chatbot_vector where id = :chat_ide')
+    count=db.session.execute(select_cm,{'chat_ide':chat_id}).scalar()
+    lm=count-301
+    if lm>0:
+        sql_lru_cm=text("""delete from chatbot_vector where id in (select id from chatbot_vector where chat_id = :chat_ide order by created_at asc limit :lm)""")
+        db.session.execute(sql_lru_cm,{'chat_ide':chat_id,'lm':lm})
+        db.session.commit()
+
     docs=[Document(
-                    page_content=text,
+                    page_content=texte,
                     metadata={'source':'user_file','author':chat_id})]
     chunked=chunking(docs)
     embed_docs(chunked,chat_id)
