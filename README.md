@@ -1,204 +1,86 @@
-# cringestchatbotever
-most basic chatbot
-# Intent-Based Rental Room Chatbot
+# RAG Telegram Chatbot
 
-A Vietnamese intent-based chatbot designed to answer common questions about rental rooms. The project uses basic Natural Language Processing techniques to classify user messages and generate predefined responses.
+A Vietnamese Telegram chatbot built with Retrieval-Augmented Generation (RAG). Users can provide their own text data, which is embedded and stored in PostgreSQL with pgvector. Relevant context is retrieved and passed to an LLM to generate responses.
 
-The chatbot is deployed on Render and can be accessed through Telegram.
+## Demo
 
-## Live Demo
-
-Chat with the bot on Telegram:
-
-**Telegram Bot:** [@h_advbot](https://t.me/h_advbot)
+Telegram: [@h_advbot](https://t.me/h_advbot)
 
 ## Features
 
-* Vietnamese text processing with Underthesea
-* Intent classification using TF-IDF and Cosine Similarity
-* Predefined intents and responses stored in JSON
-* Fallback handling for unknown messages
-* REST API built with Flask
+* RAG-based question answering
+* User-provided text and `.txt` file ingestion
+* Text chunking and vector embeddings
+* PostgreSQL + pgvector similarity search
+* User-specific context retrieval
+* Gemma LLM via OpenRouter
 * Telegram Bot integration
-* Chat history storage with PostgreSQL
-* Deployed using Render
+* Chat history storage
+* Render deployment
+
+## Architecture
+
+```text
+Telegram
+   ↓
+Flask Webhook
+   ↓
+Query Embedding
+   ↓
+PostgreSQL + pgvector
+   ↓
+Retrieve Relevant Context
+   ↓
+Prompt + Gemma LLM
+   ↓
+Response
+```
 
 ## Tech Stack
 
 * Python
 * Flask
-* Scikit-learn
-* Underthesea
-* PostgreSQL
-* Flask-SQLAlchemy
+* LangChain
+* PostgreSQL + pgvector
+* NVIDIA Nemotron Embeddings
+* Gemma
+* OpenRouter
 * PyTelegramBotAPI
 * Render
 
-## How It Works
+## Commands
 
 ```text
-Telegram User
-      ↓
-Telegram Bot
-      ↓
-Flask API
-      ↓
-Text Tokenization
-      ↓
-TF-IDF Vectorization
-      ↓
-Cosine Similarity
-      ↓
-Intent Classification
-      ↓
-Response Selection
-      ↓
-Telegram Response
+/input your text
 ```
 
-The chatbot compares the user's message with predefined patterns and selects the intent with the highest similarity score. If the similarity score is below a defined threshold, the chatbot returns a fallback response.
+Add text to the vector database.
+
+Send a `.txt` file with `/input` to add file content.
+
+```text
+/delete
+```
+
+Clear the vector database.
+
+After adding context, simply send a question to the bot.
 
 ## Project Structure
 
 ```text
 cringestchatbotever/
-│
+├── rag_engine/
+│   ├── get_rep.py
+│   └── rag_preprocess.py
 ├── choicenrep/
-│   ├── inputanas.py       # NLP and intent classification logic
-│   ├── intents.json       # Chatbot intents and responses
-│   └── naive_approach.py
-│
-├── app.py                 # Flask API and database integration
-├── bot.py                 # Telegram Bot
-├── test.py
+├── context/
+├── app.py
+├── extensions.py
 ├── requirements.txt
 └── README.md
 ```
 
-## Usage
-
-The chatbot is publicly available through Telegram:
-
-**https://t.me/h_advbot**
-
-Users can send messages related to rental rooms, including:
-
-* Greetings
-* Room information
-* Rental prices
-* Services and utilities
-* Amenities
-* Deposit and rental terms
-
-The chatbot processes the message, identifies the most relevant intent, and returns a predefined response.
-
-## Local Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/killer123578910-droid/cringestchatbotever.git
-cd cringestchatbotever
-```
-
-Create a virtual environment:
-
-```bash
-python -m venv venv
-```
-
-Activate the environment.
-
-Windows:
-
-```bash
-venv\Scripts\activate
-```
-
-Linux:
-
-```bash
-source venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-## Configuration
-
-Create a `.env` file:
-
-```env
-API=your_telegram_bot_token
-sql_pw=your_postgresql_password
-```
-
-Make sure your PostgreSQL database configuration matches the application settings.
-
-## Running Locally
-
-Start the Flask application:
-
-```bash
-python app.py
-```
-
-The Telegram bot can then be started with:
-
-```bash
-python bot.py
-```
-
-## API
-
-### Chat Endpoint
-
-```text
-POST /api/chat
-```
-
-Example request:
-
-```json
-{
-    "message": "Giá phòng bao nhiêu?"
-}
-```
-
-Example response:
-
-```json
-{
-    "message": "..."
-}
-```
-
-## Deployment
-
-The application is deployed using Render.
-
-The deployed backend handles chatbot requests and communicates with the Telegram bot.
-
 ## Purpose
 
-This project was built to practice:
-
-* Basic Natural Language Processing
-* Vietnamese text processing
-* Intent-based chatbot development
-* TF-IDF and Cosine Similarity
-* Flask API development
-* Telegram Bot integration
-* PostgreSQL database integration
-* Cloud deployment with Render
-
-## Limitations
-
-This project uses a similarity-based intent classification approach and is designed for learning purposes.
-
-It does not use Deep Learning or Large Language Models. The chatbot works best with messages related to predefined intents and patterns.
-
-
+A personal learning project focused on practical RAG development, including embeddings, vector search, LLM integration, PostgreSQL, Telegram bots, and deployment.
