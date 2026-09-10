@@ -17,11 +17,12 @@ llm = ChatOpenAI(
 
 #take top k similarity, form its content to a context text;
 def form_prompt(userq,k,user_id):
+    
     listofrelevent=list(response(userq,k,user_id))
     context_text=' '.join(row[0] for row in listofrelevent)
     listofchosenid=[row[2] for row in listofrelevent]
 
-    sysprompt=f'You are a knowledgeable virtual assistant. Based on the following information: {context_text}, answer the users question. If the information is not available in the context, say that you do not know. Do not make up or fabricate any information.'
+    sysprompt=f'You are a knowledgeable virtual assistant. Based on the following information: {context_text}, answer the users question. If the information is not available in the context,answer base on your knowledge with precaution that this info is not user base and can be incorrect.'
     messages=[
         SystemMessage(content=sysprompt),
         HumanMessage(content=userq)
