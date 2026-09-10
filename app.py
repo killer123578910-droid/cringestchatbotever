@@ -1,6 +1,7 @@
 from flask import Flask,request,jsonify
 import requests
 from extensions import db
+from sqlalchemy import text
 from datetime import datetime
 import pathlib
 from rag_engine.get_rep import take_rep,form_prompt
@@ -143,8 +144,12 @@ def getmessages():
 
                 processed,listofrag=form_prompt(userq=text,k=7,user_id=chat_id)
                 reply_text=take_rep(processed) 
+
+
+
+                db.session.execute(text('update chatbot_vector set created_at=current_timestamp where id in :selecid'),{'selecid':listofrag})        
+
                 chat=chathis(text,reply_text,chat_id,chat_name)
-                        
                 db.session.add(chat)
                 db.session.commit()
                 return jsonify({

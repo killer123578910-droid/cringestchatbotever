@@ -78,7 +78,7 @@ def embed_docs(docs,chat_id):
 
 def response(userq,k,user_id):
     embedqur=embedmodel.embed_query(userq)
-    sql_command=text("""select content,1-(embedding<=> cast(:vu as vector)) as cosine_diff from chatbot_vector where user_id = :user_id order by embedding <=> cast(:vu as vector) limit :limit_k""")
+    sql_command=text("""select content,1-(embedding<=> cast(:vu as vector)) as cosine_diff,id from chatbot_vector where user_id = :user_id order by embedding <=> cast(:vu as vector) limit :limit_k""")
     req=db.session.execute(sql_command,{"vu":str(embedqur),'user_id':user_id,"limit_k":k})
     #print(req.fetchall())
     return req.fetchall()
