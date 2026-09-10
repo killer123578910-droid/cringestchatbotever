@@ -1,6 +1,6 @@
 # RAG Telegram Chatbot
 
-A Vietnamese Telegram chatbot built with Retrieval-Augmented Generation (RAG). Users can provide their own text data, which is embedded and stored in PostgreSQL with pgvector. Relevant context is retrieved and passed to an LLM to generate responses.
+A Telegram chatbot built with Retrieval-Augmented Generation (RAG). Users can provide their own text data, which is embedded and stored in PostgreSQL with pgvector. Relevant context is retrieved and passed to an LLM to generate responses.
 
 ## Demo
 
