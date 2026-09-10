@@ -115,7 +115,7 @@ def getmessages():
                                         'method':'sendMessage',
                                         'chat_id':chat_id,
                                         'text':'wrong input syntax or no file included, please do /input and include your file' 
-                                    }),404
+                                    }),200
                     
                     
                 
