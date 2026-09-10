@@ -145,19 +145,28 @@ def getmessages():
                 processed,listofrag=form_prompt(userq=txt,k=7,user_id=chat_id)
                 reply_text=take_rep(processed) 
 
-        
+                select_cm=text('select count(*) from chatbot_vector where id = :chat_ide')
+                count=db.session.execute(select_cm,{'chat_ide':chat_id}).scalar()
+                if count>0:
+                    update_sql_cm=f"""update chatbot_vector set created_at = :current_timestamp where id in ({','.join(str(r) for r in listofrag)});"""
+                    db.session.execute(text(update_sql_cm),{'current_timestamp':datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat()})        
+                    chat=chathis(txt,reply_text,chat_id,chat_name)
+                    db.session.add(chat)
+                    db.session.commit()
+                    return jsonify({
+                                        "method":"sendMessage",
+                                        "chat_id":chat_id,
+                                        "text":reply_text}),200
+                else:
+                            
+                    chat=chathis(txt,reply_text,chat_id,chat_name)
+                    db.session.add(chat)
+                    db.session.commit()
+                    return jsonify({
+                                    "method":"sendMessage",
+                                    "chat_id":chat_id,
+                                    "text":reply_text}),200
                 
-
-                update_sql_cm=f"""update chatbot_vector set created_at = :current_timestamp where id in ({','.join(str(r) for r in listofrag)});"""
-                db.session.execute(text(update_sql_cm),{'current_timestamp':datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat()})        
-
-                chat=chathis(txt,reply_text,chat_id,chat_name)
-                db.session.add(chat)
-                db.session.commit()
-                return jsonify({
-                    "method":"sendMessage",
-                    "chat_id":chat_id,
-                    "text":reply_text}),200
     else:
         return jsonify({
                     "message":"failed to fetch client input"
