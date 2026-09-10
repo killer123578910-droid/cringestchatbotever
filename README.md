@@ -1,3 +1,5 @@
+# cringestchatbotever
+most basic chatbot
 # Intent-Based Rental Room Chatbot
 
 A Vietnamese intent-based chatbot designed to answer common questions about rental rooms. The project uses basic Natural Language Processing techniques to classify user messages and generate predefined responses.
