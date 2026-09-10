@@ -175,7 +175,7 @@ def getmessages():
         return jsonify({
             "method":"sendMessage",
             "chat_id":chat_id,
-            "text":"api hit limit, please return later"}),429
+            "text":"api hit limit, please return later"}),200
     
 if __name__=="__main__":
     app.run(port=5000,debug=True)
