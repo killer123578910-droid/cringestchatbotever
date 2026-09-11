@@ -51,6 +51,11 @@ Response
 ## Commands
 
 ```text
+/start
+```
+show instructions.
+
+```text
 /input your text
 ```
 
@@ -63,6 +68,8 @@ Send a `.txt` file with `/input` to add file content.
 ```
 
 Clear the vector database.
+
+
 
 After adding context, simply send a question to the bot.
 
