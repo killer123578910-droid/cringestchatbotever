@@ -11,17 +11,15 @@ from dotenv import load_dotenv
 import os
 import telebot
 from zoneinfo import ZoneInfo
+import logging
+#loggins init
+logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+logger=logging.getLogger(__name__)
+
 #telebot
 API_KEY=os.getenv("API")
 bot=telebot.TeleBot(API_KEY)
-#the json loader
-data={}
-basedir=pathlib.Path(__file__).parent.resolve()
-intenpath=basedir/"choicenrep"/"intents.json"
-with open(intenpath,"r",encoding="utf-8") as f:
-    data=json.load(f)
 
-#preparing for TF-IDF
 
 
 load_dotenv()
@@ -89,13 +87,13 @@ with app.app_context():
 #api route            
 @app.route(f"/tele",methods=["POST"])
 def getmessages():
-
+    
     usr=request.get_json()
     try:
         if usr and 'message' in usr:
             chat_id= usr['message']['chat']['id']
             chat_name=usr['message']['chat'].get('first_name', '') + " " + usr['message']['chat'].get('last_name', '')
-
+            
             if('caption' in usr['message']):
                 
                 if 'document' in usr['message'] and usr['message']['document']['mime_type']=='text/plain' and usr['message']['caption']=='/input':
@@ -105,12 +103,14 @@ def getmessages():
                     file_path=requests.get(f"https://api.telegram.org/bot{API_KEY}/getFile?file_id={file_id}")
                     file_content=requests.get(f"https://api.telegram.org/file/bot{API_KEY}/{file_path.json()['result']['file_path']}")
                     add_text_features(file_content.text,chat_id)
+                    logger.info('successfully got background context!')
                     return jsonify({
                         'method':'sendMessage',
                         'chat_id':chat_id,
-                        'text':'data digested' 
+                        'text':'Data successfully digested!' 
                     }),200
                 else:
+                    logger.warning('Wrong input method!')
                     return jsonify({
                                         'method':'sendMessage',
                                         'chat_id':chat_id,
@@ -119,13 +119,22 @@ def getmessages():
                     
                     
                 
-            elif 'text' in usr["message"]:         
+            elif 'text' in usr["message"]:
+                if usr['message']['text'].startswith('/start'):
+                                logger.info('start instruction send!')
+                                return jsonify({
+                                    'method':'sendMessage',
+                                    'chat_id':chat_id,
+                                    'text':'Welcome to BoBot!\n to start, /input <your data> or /input and including txt for the system to take your knowledge and be well-prepared for your answer. then just start talking\n otherwise, you can just talk to my bots with its general trained infomation' 
+                                }),200
+                                         
 
                 if usr['message']['text'].startswith('/input'):
                     txt=usr['message']['text'].replace('/input','')
                     
 
                     add_text_features(txt,chat_id)
+                    logger.info('successfully got background context!')
                     return jsonify({
                         'method':'sendMessage',
                         'chat_id':chat_id,
@@ -133,6 +142,7 @@ def getmessages():
                     }),200
                 elif usr['message']['text'].startswith('/delete'):
                     delete_vtdb()
+                    logger.info('successfully deleted background context!')
                     return jsonify({
                                         'method':'sendMessage',
                                         'chat_id':chat_id,
@@ -145,14 +155,14 @@ def getmessages():
                     processed,listofrag=form_prompt(userq=txt,k=7,user_id=chat_id)
                     reply_text=take_rep(processed) 
 
-                    select_cm=text('select count(*) from chatbot_vector where id = :chat_ide')
-                    count=db.session.execute(select_cm,{'chat_ide':chat_id}).scalar()
-                    if count>0:
+                    
+                    if listofrag:
                         update_sql_cm=f"""update chatbot_vector set created_at = :current_timestamp where id in ({','.join(str(r) for r in listofrag)});"""
                         db.session.execute(text(update_sql_cm),{'current_timestamp':datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).isoformat()})        
                         chat=chathis(txt,reply_text,chat_id,chat_name)
                         db.session.add(chat)
                         db.session.commit()
+                        logger.info('rag time update succesful!')
                         return jsonify({
                                             "method":"sendMessage",
                                             "chat_id":chat_id,
@@ -162,20 +172,23 @@ def getmessages():
                         chat=chathis(txt,reply_text,chat_id,chat_name)
                         db.session.add(chat)
                         db.session.commit()
+                        logger.info('no relevent text, send default answers')
                         return jsonify({
                                         "method":"sendMessage",
                                         "chat_id":chat_id,
                                         "text":reply_text}),200
-                    
+                
         else:
+            logger.error('Webhook got problems!',exc_info=True)
             return jsonify({
                         "message":"failed to fetch client input"
                         }),400
     except Exception as e:
+        logger.error('error occured',exc_info=True)
         return jsonify({
             "method":"sendMessage",
             "chat_id":chat_id,
-            "text":"api hit limit, please return later"}),200
+            "text":"errored occured, please try later!"}),200
     
 if __name__=="__main__":
     app.run(port=5000,debug=True)
